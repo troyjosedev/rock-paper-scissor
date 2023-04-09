@@ -1,64 +1,85 @@
-function getComputerChoice() {
-    const choices = ["rock", "paper", "scissors"];
-    const randomIndex = Math.floor(Math.random() * choices.length);
-    return choices[randomIndex]
-}
+const selectionButtons = document.querySelectorAll('[data-selection]');
+const finalColumn = document.querySelector('[data-final-column]');
+const computerScoreSpan = document.querySelector('[data-computer-score]');
+const yourScoreSpan = document.querySelector('[data-your-score]');
+const SELECTIONS = [    
+    {       
+     name: 'rock',        
+     emoji: '✊',        
+     beats: 'scissors'    
+    },    
+    {        
+    name: 'paper',        
+    emoji: '✋',        
+    beats: 'rock'    
+    },    
+    {        
+    name: 'scissors',        
+    emoji: '✌️',       
+    beats: 'paper'    
+    },
+];
 
-function playRound(playerSelection, computerSelection){
-    const playerChoice = playerSelection.toLowerCase();
-    const computerChoice = computerSelection.toLowerCase();
+let yourScore = 0;
+let computerScore = 0;
+let matchCount = 0;
 
-    if (playerChoice ===  computerChoice) {
-        return `It's a tie`
-    } else if (
-        (playerChoice === "rock" && computerChoice === "scissors") ||
-        (playerChoice === "paper" && computerChoice === "rock") ||
-        (playerChoice === "scissors" && computerChoice === "paper") 
-    ) {
-        return `You win! ${playerChoice} beats ${computerChoice}`
-    } else {
-        return `You lose! ${computerChoice} beats ${playerChoice}`
+selectionButtons.forEach(selectionButton => {
+    selectionButton.addEventListener('click', e => {
+        const selectionName = selectionButton.dataset.selection;
+        const selection = SELECTIONS.find(selection => selection.name === selectionName);
+        makeSelection(selection);
+    });
+});
+
+function makeSelection(selection) {
+    const computerSelection = randomSelection();
+    const yourWinner = isWinner(selection, computerSelection);
+    const computerWinner = isWinner(computerSelection, selection);
+
+    addSelectionResult(computerSelection, computerWinner);
+    addSelectionResult(selection, yourWinner);
+
+    if (yourWinner) {
+        yourScore++;
+        yourScoreSpan.innerText = yourScore;
+    }
+
+    if (computerWinner) {
+        computerScore++;
+        computerScoreSpan.innerText = computerScore;
+    }
+
+    matchCount++;
+
+    if (matchCount === 10) {
+        if (yourScore > computerScore) {
+            alert('You win!');
+        } else if (yourScore < computerScore) {
+            alert('Computer wins!');
+        } else {
+            alert('It\'s a tie!');
+        }
+
+        resetGame();
     }
 }
 
-function game() {
-    let playerScore = 0;
-    let computerScore = 0;
-
-
-    for (let i = 0; i < 5; i++) {
-        let playerSelection;
-
-        do {
-            playerSelection = prompt("Choose rock, paper, or scissors")
-        } while (playerSelection !== "rock" && playerSelection !== "paper" && playerSelection && "scissors" && playerSelection === null)
-
-        if (playerSelection === null) {
-            console.log("Game Cancelled");
-            return;
-        }
-
-        const computerSelection = getComputerChoice();
-        const result = playRound(playerSelection, computerSelection);
-        console.log(result);
-
-        if (result.includes("win")) {
-            playerScore++;
-        } else if (result.includes("lose")) {
-            computerScore++
-        }
-    } 
-
-
-    if (playerScore > computerScore) {
-        console.log("You win the game!");
-    } else if (computerScore > playerScore) {
-        console.log("You lose the game");
-    } else {
-        console.log("The game is tied");
+function addSelectionResult(selection, winner) {
+    const div = document.createElement('div');
+    div.innerText = selection.emoji;
+    div.classList.add('result-selection');
+    if (winner) {
+        div.classList.add('winner');
     }
-
-
+    finalColumn.after(div);
 }
 
-game()
+function isWinner(selection, opponentSelection) {
+    return selection.beats === opponentSelection.name;
+}
+
+function randomSelection() {
+    const randomIndex = Math.floor(Math.random() * SELECTIONS.length);
+    return SELECTIONS[randomIndex];
+}
